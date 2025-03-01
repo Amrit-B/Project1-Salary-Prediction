@@ -1,43 +1,57 @@
 import pandas as pd
 import sklearn
 import matplotlib.pyplot as plt
+import streamlit as st
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
-# Load the dataset
-dataset = pd.read_excel(r"S:\TCS\Projects\SALARY PREDICTION\SALARY PREDICTION\Salary_Data.xlsx")
-print(dataset.head(5))
+# Streamlit App Title
+st.title("Salary Prediction Based on Experience")
 
-# Split the dataset into independent (x) and dependent (y) variables
-x = dataset.iloc[:, :-1].values 
-y = dataset.iloc[:, -1].values
+# File Upload for the dataset
+uploaded_file = st.file_uploader("Choose a dataset", type=["xlsx"])
 
-# Split the dataset into training and testing sets
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=1/3, random_state=0)
+if uploaded_file is not None:
+    # Load the dataset
+    dataset = pd.read_excel(uploaded_file)
+    st.write("Dataset Preview:")
+    st.write(dataset.head(5))
 
-# Create and train the Linear Regression model
-regressor = LinearRegression()
-regressor.fit(x_train, y_train)
+    # Split the dataset into independent (x) and dependent (y) variables
+    x = dataset.iloc[:, :-1].values 
+    y = dataset.iloc[:, -1].values
 
-# Make predictions
-y_pred = regressor.predict(x_test)
+    # Split the dataset into training and testing sets
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=1/3, random_state=0)
 
-# Visualizing the Training Set
-plt.scatter(x_train, y_train, color='red')
-plt.plot(x_train, regressor.predict(x_train), color='blue')
-plt.title('Salary Vs Experience (Training Set)')
-plt.xlabel('Years of Experience')
-plt.ylabel('Salary')
-plt.show()
+    # Create and train the Linear Regression model
+    regressor = LinearRegression()
+    regressor.fit(x_train, y_train)
 
-# Visualizing the Testing Set
-plt.scatter(x_test, y_test, color='red')
-plt.plot(x_train, regressor.predict(x_train), color='blue')
-plt.title('Salary Vs Experience (Test Set)')
-plt.xlabel('Years of Experience')
-plt.ylabel('Salary')
-plt.show()
+    # Make predictions
+    y_pred = regressor.predict(x_test)
 
-# Predict salary for a given experience
-new_salary_pred = regressor.predict([[13]])
-print('The Predicted Salary of a Person with 13 Years of Experience is:', new_salary_pred)
+    # Visualizing the Training Set
+    st.subheader("Salary Vs Experience (Training Set)")
+    fig, ax = plt.subplots()
+    ax.scatter(x_train, y_train, color='red')
+    ax.plot(x_train, regressor.predict(x_train), color='blue')
+    ax.set_title('Salary Vs Experience (Training Set)')
+    ax.set_xlabel('Years of Experience')
+    ax.set_ylabel('Salary')
+    st.pyplot(fig)
+
+    # Visualizing the Testing Set
+    st.subheader("Salary Vs Experience (Test Set)")
+    fig, ax = plt.subplots()
+    ax.scatter(x_test, y_test, color='red')
+    ax.plot(x_train, regressor.predict(x_train), color='blue')
+    ax.set_title('Salary Vs Experience (Test Set)')
+    ax.set_xlabel('Years of Experience')
+    ax.set_ylabel('Salary')
+    st.pyplot(fig)
+
+    # Predict salary for a given experience
+    experience = st.slider("Select Experience (Years)", min_value=0, max_value=30, step=1)
+    new_salary_pred = regressor.predict([[experience]])
+    st.write(f'The Predicted Salary of a Person with {experience} Years of Experience is: {new_salary_pred[0]:.2f}')
